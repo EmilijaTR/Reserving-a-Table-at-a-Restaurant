@@ -5,6 +5,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') })
 require('./DB/dbConn')
 const userRoutes = require('./routes/user')
 const testConn = require('./routes/testConn')
+const restaurantRoutes = require('./routes/restaurants')
 
 const app = express()
 const port = Number(process.env.PORT) || 5000
@@ -21,6 +22,8 @@ app.use(
 app.use('/api/testConn', testConn)
 
 app.use('/api/user', userRoutes)
+
+app.use('/api/restaurants', restaurantRoutes)
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
