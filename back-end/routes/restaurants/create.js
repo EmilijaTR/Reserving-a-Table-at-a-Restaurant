@@ -1,31 +1,8 @@
 const express = require('express')
-const { promisePool } = require('../DB/dbConn')
+const { promisePool } = require('../../DB/dbConn')
+const { getOwnerIdFromRequest, assertOwner } = require('./ownerContext')
 
 const router = express.Router()
-
-/** owner id manual for testing */
-function getOwnerIdFromRequest(req) {
-  const raw = req.headers['x-user-id']
-  const id = raw != null ? parseInt(String(raw), 10) : NaN
-  return Number.isFinite(id) && id > 0 ? id : null
-}
-
-async function assertOwner(userId) {
-  const [rows] = await promisePool.query(
-    'SELECT user_id, role FROM `User` WHERE user_id = ?',
-    [userId]
-  )
-  if (rows.length === 0) {
-    const err = new Error('USER_NOT_FOUND')
-    err.status = 404
-    throw err
-  }
-  if (rows[0].role !== 'o') {
-    const err = new Error('NOT_OWNER')
-    err.status = 403
-    throw err
-  }
-}
 
 router.post('/', async (req, res) => {
   try {
