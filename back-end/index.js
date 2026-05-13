@@ -2,9 +2,8 @@ const path = require('path')
 const express = require('express')
 const cors = require('cors')
 require('dotenv').config({ path: path.join(__dirname, '.env') })
-
 require('./DB/dbConn')
-
+const userRoutes = require('./routes/user')
 const testConn = require('./routes/testConn')
 
 const app = express()
@@ -20,6 +19,8 @@ app.use(
 )
 
 app.use('/api/testConn', testConn)
+
+app.use('/api/user', userRoutes)
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
