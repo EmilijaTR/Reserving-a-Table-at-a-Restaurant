@@ -2,6 +2,8 @@ const express = require('express')
 const { promisePool } = require('../../DB/dbConn')
 const { getUserIdFromRequest, assertCustomer } = require('./userContext')
 const {
+  overlappingGuestTotal,
+  getRestaurantCapacity,
   DEFAULT_DURATION_HOURS,
 } = require('./reservationCapacity')
 
@@ -13,7 +15,7 @@ router.post('/', async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         ok: false,
-        message: 'Missing or invalid customer user_id.',
+        message: 'Missing or invalid X-User-Id (customer user_id).',
       })
     }
 
@@ -37,11 +39,39 @@ router.post('/', async (req, res) => {
       })
     }
 
+    const start = new Date(datetime)
+    if (Number.isNaN(start.getTime())) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Invalid datetime. Use ISO format, e.g. 2026-05-20T19:00:00',
+      })
+    }
 
+    const capacity = await getRestaurantCapacity(rid)
+    if (capacity == null) {
+      return res.status(404).json({ ok: false, message: 'Restaurant not found.' })
+    }
+
+    const occupied = await overlappingGuestTotal(rid, start, DEFAULT_DURATION_HOURS)
+    if (occupied + guests > capacity) {
+      return res.status(409).json({
+        ok: false,
+        message: 'Not enough capacity for that time window.',
+        details: {
+          guest_capacity: capacity,
+          already_booked_guests_in_window: occupied,
+          requested_guests: guests,
+          window_hours: DEFAULT_DURATION_HOURS,
+        },
+      })
+    }
+
+    const notesVal = notes != null ? String(notes) : ''
+    const discountUsed = 0
 
     const [result] = await promisePool.query(
       `INSERT INTO Reservation
-        (user_id, restaurant_id, datetime, guest_count, status, notes, discount_used)
+        (user_id, restaurant_id, \`datetime\`, guest_count, status, notes, discount_used)
        VALUES (?, ?, ?, ?, 'pending', ?, ?)`,
       [userId, rid, start, guests, notesVal, discountUsed]
     )
