@@ -6,17 +6,23 @@ function getUserIdFromRequest(req) {
   return Number.isFinite(id) && id > 0 ? id : null
 }
 
-async function assertCustomer(userId) {
+async function getUserRole(userId) {
   const [rows] = await promisePool.query(
-    'SELECT user_id, role FROM `User` WHERE user_id = ?',
+    'SELECT role FROM `User` WHERE user_id = ?',
     [userId]
   )
-  if (rows.length === 0) {
+  if (rows.length === 0) return null
+  return rows[0].role
+}
+
+async function assertCustomer(userId) {
+  const role = await getUserRole(userId)
+  if (role === null) {
     const err = new Error('USER_NOT_FOUND')
     err.status = 404
     throw err
   }
-  if (rows[0].role !== 'c') {
+  if (role !== 'c') {
     const err = new Error('NOT_CUSTOMER')
     err.status = 403
     throw err
@@ -25,5 +31,6 @@ async function assertCustomer(userId) {
 
 module.exports = {
   getUserIdFromRequest,
+  getUserRole,
   assertCustomer,
 }

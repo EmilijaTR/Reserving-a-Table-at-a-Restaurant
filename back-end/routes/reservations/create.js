@@ -1,6 +1,7 @@
 const express = require('express')
 const { promisePool } = require('../../DB/dbConn')
-const { getUserIdFromRequest, assertCustomer } = require('./userContext')
+const { getUserIdFromRequest, getUserRole } = require('./userContext')
+const { assertOwnerOwnsRestaurant } = require('./ownerRestaurant')
 const {
   overlappingGuestTotal,
   getRestaurantCapacity,
@@ -11,15 +12,21 @@ const router = express.Router()
 
 router.post('/', async (req, res) => {
   try {
-    const userId = getUserIdFromRequest(req)
-    if (!userId) {
+    const makerId = getUserIdFromRequest(req)
+    if (!makerId) {
       return res.status(401).json({
         ok: false,
-        message: 'Missing or invalid X-User-Id (customer user_id).',
+        message: 'Missing or invalid X-User-Id.',
       })
     }
 
-    await assertCustomer(userId)
+    const role = await getUserRole(makerId)
+    if (role === null) {
+      return res.status(404).json({ ok: false, message: 'User not found.' })
+    }
+    if (role !== 'c' && role !== 'o') {
+      return res.status(403).json({ ok: false, message: 'Forbidden.' })
+    }
 
     const { restaurant_id, datetime, guest_count, notes } = req.body
 
@@ -47,12 +54,16 @@ router.post('/', async (req, res) => {
       })
     }
 
+    if (role === 'o') {
+      await assertOwnerOwnsRestaurant(makerId, rid)
+    }
+
     const capacity = await getRestaurantCapacity(rid)
     if (capacity == null) {
       return res.status(404).json({ ok: false, message: 'Restaurant not found.' })
     }
 
-    const occupied = await overlappingGuestTotal(rid, start, DEFAULT_DURATION_HOURS)
+    const occupied = await overlappingGuestTotal(rid, start, DEFAULT_DURATION_HOURS, null)
     if (occupied + guests > capacity) {
       return res.status(409).json({
         ok: false,
@@ -73,7 +84,7 @@ router.post('/', async (req, res) => {
       `INSERT INTO Reservation
         (user_id, restaurant_id, \`datetime\`, guest_count, status, notes, discount_used)
        VALUES (?, ?, ?, ?, 'pending', ?, ?)`,
-      [userId, rid, start, guests, notesVal, discountUsed]
+      [makerId, rid, start, guests, notesVal, discountUsed]
     )
 
     return res.status(201).json({

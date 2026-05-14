@@ -1,18 +1,34 @@
+const { promisePool } = require('../../DB/dbConn')
+
 /** How long each reservation "occupies" capacity from its start time */
 const DEFAULT_DURATION_HOURS = 2
 
-const { promisePool } = require('../../DB/dbConn')
+/**
+ * Sum guest_count for pending reservations whose [start, start+duration) overlaps [newStart, newStart+duration).
+ * excludeReservationId: ignore this row (for updates on res).
+ */
+async function overlappingGuestTotal(
+  restaurantId,
+  newStart,
+  durationHours = DEFAULT_DURATION_HOURS,
+  excludeReservationId = null
+) {
+  const params = [restaurantId, newStart, durationHours, durationHours, newStart]
+  let excludeSql = ''
+  if (excludeReservationId != null) {
+    excludeSql = ' AND reservation_id <> ?'
+    params.push(excludeReservationId)
+  }
 
-/** Sum guest_count for pending+completed reservations whose [start, start+duration) overlaps [newStart, newStart+duration). */
-async function overlappingGuestTotal(restaurantId, newStart, durationHours = DEFAULT_DURATION_HOURS) {
   const [rows] = await promisePool.query(
     `SELECT COALESCE(SUM(guest_count), 0) AS occupied
      FROM Reservation
      WHERE restaurant_id = ?
-       AND status IN ('pending', 'completed')
+       AND status = 'pending'
        AND \`datetime\` < DATE_ADD(?, INTERVAL ? HOUR)
-       AND DATE_ADD(\`datetime\`, INTERVAL ? HOUR) > ?`,
-    [restaurantId, newStart, durationHours, durationHours, newStart]
+       AND DATE_ADD(\`datetime\`, INTERVAL ? HOUR) > ?
+       ${excludeSql}`,
+    params
   )
   return Number(rows[0].occupied || 0)
 }
