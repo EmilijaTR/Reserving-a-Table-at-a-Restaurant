@@ -7,6 +7,7 @@ const userRoutes = require('./routes/user')
 const testConn = require('./routes/testConn')
 const restaurantRoutes = require('./routes/restaurants')
 const reservationRoutes = require('./routes/reservations')
+const reviewRoutes = require('./routes/reviews')
 
 const app = express()
 const port = Number(process.env.PORT) || 5000
@@ -27,6 +28,8 @@ app.use('/api/user', userRoutes)
 app.use('/api/restaurants', restaurantRoutes)
 
 app.use('/api/reservations', reservationRoutes)
+
+app.use('/api/reviews', reviewRoutes)
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
