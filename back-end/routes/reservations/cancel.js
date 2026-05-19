@@ -1,6 +1,7 @@
 const express = require('express')
 const { promisePool } = require('../../DB/dbConn')
 const { getUserIdFromRequest } = require('./userContext')
+const { refundDiscountPoints } = require('./points')
 
 const router = express.Router()
 
@@ -20,7 +21,7 @@ router.patch('/:id/cancel', async (req, res) => {
     }
 
     const [rows] = await promisePool.query(
-      'SELECT reservation_id, user_id, status FROM Reservation WHERE reservation_id = ?',
+      'SELECT reservation_id, user_id, status, discount_used FROM Reservation WHERE reservation_id = ?',
       [reservationId]
     )
     if (rows.length === 0) {
@@ -40,12 +41,22 @@ router.patch('/:id/cancel', async (req, res) => {
       })
     }
 
+    const hadDiscount = rows[0].discount_used === 1 || rows[0].discount_used === true
+
     await promisePool.query(
       "UPDATE Reservation SET status = 'cancelled' WHERE reservation_id = ?",
       [reservationId]
     )
 
-    return res.json({ ok: true, message: 'Reservation cancelled.' })
+    if (hadDiscount) {
+      await refundDiscountPoints(makerId)
+    }
+
+    return res.json({
+      ok: true,
+      message: 'Reservation cancelled.',
+      points_refunded: hadDiscount ? 5 : 0,
+    })
   } catch (err) {
     console.error(err)
     return res.status(500).json({ ok: false, message: 'Server error.' })

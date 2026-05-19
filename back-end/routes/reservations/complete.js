@@ -2,6 +2,7 @@ const express = require('express')
 const { promisePool } = require('../../DB/dbConn')
 const { getUserIdFromRequest, getUserRole } = require('./userContext')
 const { assertOwnerOwnsRestaurant } = require('./ownerRestaurant')
+const { awardPointOnComplete } = require('./points')
 
 const router = express.Router()
 
@@ -26,7 +27,7 @@ router.patch('/:id/complete', async (req, res) => {
     }
 
     const [rows] = await promisePool.query(
-      'SELECT reservation_id, restaurant_id, status FROM Reservation WHERE reservation_id = ?',
+      'SELECT reservation_id, restaurant_id, user_id, status FROM Reservation WHERE reservation_id = ?',
       [reservationId]
     )
     if (rows.length === 0) {
@@ -48,7 +49,16 @@ router.patch('/:id/complete', async (req, res) => {
       [reservationId]
     )
 
-    return res.json({ ok: true, message: 'Reservation marked completed.' })
+    const loyalty = await awardPointOnComplete(r.user_id)
+
+    return res.json({
+      ok: true,
+      message: 'Reservation marked completed.',
+      loyalty: {
+        point_awarded: loyalty.awarded,
+        customer_user_id: loyalty.awarded ? r.user_id : null,
+      },
+    })
   } catch (err) {
     if (err.status === 403) {
       return res.status(403).json({ ok: false, message: err.message })

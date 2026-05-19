@@ -7,6 +7,7 @@ const {
   getRestaurantCapacity,
   DEFAULT_DURATION_HOURS,
 } = require('./reservationCapacity')
+const { applyDiscountPoints } = require('./points')
 
 const router = express.Router()
 
@@ -28,7 +29,7 @@ router.post('/', async (req, res) => {
       return res.status(403).json({ ok: false, message: 'Forbidden.' })
     }
 
-    const { restaurant_id, datetime, guest_count, notes } = req.body
+    const { restaurant_id, datetime, guest_count, notes, use_discount } = req.body
 
     if (restaurant_id == null || !datetime || guest_count == null) {
       return res.status(400).json({
@@ -58,13 +59,42 @@ router.post('/', async (req, res) => {
       await assertOwnerOwnsRestaurant(makerId, rid)
     }
 
+    const wantsDiscount = use_discount === true || use_discount === 1 || use_discount === 'true'
+    if (wantsDiscount && role !== 'c') {
+      return res.status(400).json({
+        ok: false,
+        message: 'Only customers can use loyalty discount.',
+      })
+    }
+
+    let discountUsed = 0
+    if (wantsDiscount) {
+      try {
+        await applyDiscountPoints(makerId)
+        discountUsed = 1
+      } catch (e) {
+        if (e.status) {
+          return res.status(e.status).json({ ok: false, message: e.message })
+        }
+        throw e
+      }
+    }
+
     const capacity = await getRestaurantCapacity(rid)
     if (capacity == null) {
+      if (discountUsed === 1) {
+        const { refundDiscountPoints } = require('./loyaltyHelpers')
+        await refundDiscountPoints(makerId)
+      }
       return res.status(404).json({ ok: false, message: 'Restaurant not found.' })
     }
 
     const occupied = await overlappingGuestTotal(rid, start, DEFAULT_DURATION_HOURS, null)
     if (occupied + guests > capacity) {
+      if (discountUsed === 1) {
+        const { refundDiscountPoints } = require('./loyaltyHelpers')
+        await refundDiscountPoints(makerId)
+      }
       return res.status(409).json({
         ok: false,
         message: 'Not enough capacity for that time window.',
@@ -78,7 +108,6 @@ router.post('/', async (req, res) => {
     }
 
     const notesVal = notes != null ? String(notes) : ''
-    const discountUsed = 0
 
     const [result] = await promisePool.query(
       `INSERT INTO Reservation
@@ -91,6 +120,7 @@ router.post('/', async (req, res) => {
       ok: true,
       message: 'Reservation created.',
       reservation_id: result.insertId,
+      discount_used: discountUsed === 1,
     })
   } catch (err) {
     if (err.status) {
