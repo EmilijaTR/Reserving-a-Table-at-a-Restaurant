@@ -9,6 +9,7 @@ const restaurantRoutes = require('./routes/restaurants')
 const reservationRoutes = require('./routes/reservations')
 const reviewRoutes = require('./routes/reviews')
 const eventRoutes = require('./routes/events')
+const eventReservationRoutes = require('./routes/eventReservations')
 
 
 const app = express()
@@ -34,6 +35,9 @@ app.use('/reservations', reservationRoutes)
 app.use('/reviews', reviewRoutes)
 
 app.use('/events', eventRoutes)
+
+app.use('/eventReservations', eventReservationRoutes)
+
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
