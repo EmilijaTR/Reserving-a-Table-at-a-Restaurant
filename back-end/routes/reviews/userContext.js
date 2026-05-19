@@ -23,7 +23,17 @@ async function assertCustomer(userId) {
   }
 }
 
+async function getUserRole(userId) {
+  const [rows] = await promisePool.query(
+    'SELECT role FROM `User` WHERE user_id = ?',
+    [userId]
+  )
+  if (rows.length === 0) return null
+  return rows[0].role
+}
+
 module.exports = {
   getUserIdFromRequest,
   assertCustomer,
+  getUserRole
 }
