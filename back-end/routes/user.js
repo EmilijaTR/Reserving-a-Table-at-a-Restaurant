@@ -1,6 +1,9 @@
 const express = require('express')
 const { promisePool } = require('../DB/dbConn')
 
+const bcrypt = require('bcrypt')
+const SALT_ROUNDS = 10
+
 const router = express.Router()
 
 router.post('/register', async (req, res) => {
@@ -29,7 +32,7 @@ router.post('/register', async (req, res) => {
     }
 
     const [existing] = await promisePool.query(
-      'SELECT user_id FROM User WHERE email = ?',
+      'SELECT user_id FROM `User` WHERE email = ?',
       [email]
     )
     if (existing.length > 0) {
@@ -39,9 +42,11 @@ router.post('/register', async (req, res) => {
       })
     }
 
+    const hashedPassword = await bcrypt.hash(String(password), SALT_ROUNDS)
+
     await promisePool.query(
-      'INSERT INTO User (name, email, password, role, points) VALUES (?, ?, ?, ?, 0)',
-      [name, email, password, role]
+      'INSERT INTO `User` (name, email, password, role, points) VALUES (?, ?, ?, ?, 0)',
+      [name, email, hashedPassword, role]
     )
 
     return res.status(201).json({
@@ -66,11 +71,11 @@ router.post('/login', async (req, res) => {
     }
 
     const [rows] = await promisePool.query(
-      'SELECT user_id, name, email, password, role, points FROM User WHERE email = ?',
+      'SELECT user_id, name, email, password, role, points FROM `User` WHERE email = ?',
       [email]
     )
 
-    if (rows.length === 0 || rows[0].password !== password) {
+    if (rows.length === 0) {
       return res.status(401).json({
         ok: false,
         message: 'Invalid email or password.',
@@ -78,6 +83,15 @@ router.post('/login', async (req, res) => {
     }
 
     const u = rows[0]
+    const passwordMatch = await bcrypt.compare(String(password), u.password)
+
+    if (!passwordMatch) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Invalid email or password.',
+      })
+    }
+
     return res.json({
       ok: true,
       user: {
