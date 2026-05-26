@@ -15,6 +15,7 @@ export default function About() {
           <li>Browse restaurants and book a table</li>
           <li>Reviews and loyalty points</li>
           <li>Restaurant owners manage profile, reservations, and events</li>
+          <li>And so on, this will be changed anyways</li>
         </ul>
       </section>
     </main>

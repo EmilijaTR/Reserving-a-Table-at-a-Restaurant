@@ -5,9 +5,13 @@ export default function Home() {
     <main className="about-page">
       <section className="about-hero">
         <h1>RESTABLE</h1>
-        <p>Reserve a table at a restaurant — course project.</p>
+        <p>Reserve a table at a restaurant.</p>
         <p>
-          <Link to="/login">Login</Link> to continue.
+          <Link to="/restaurants">Browse restaurants</Link>
+          {" · "}
+          <Link to="/register">Register</Link>
+          {" · "}
+          <Link to="/login">Login</Link>
         </p>
       </section>
     </main>
