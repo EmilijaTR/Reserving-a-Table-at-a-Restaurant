@@ -16,7 +16,6 @@ export function clearStoredUser() {
   localStorage.removeItem("user");
 }
 
-/** For routes that need X-User-Id until JWT */
 export function authHeaders(extra = {}) {
   const user = getStoredUser();
   const headers = { ...extra };
@@ -24,4 +23,8 @@ export function authHeaders(extra = {}) {
     headers["X-User-Id"] = String(user.user_id);
   }
   return headers;
+}
+
+export function jsonAuthHeaders() {
+  return authHeaders({ "Content-Type": "application/json" });
 }

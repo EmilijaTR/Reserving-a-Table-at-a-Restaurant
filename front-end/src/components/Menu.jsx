@@ -25,6 +25,9 @@ export default function Menu() {
 
       {user && (
         <>
+          {user.role === "c" && (
+            <Link to="/my-reservations">My reservations</Link>
+          )}
           <span style={{ marginLeft: "8px" }}>
             {user.name} ({user.role === "o" ? "owner" : "customer"})
           </span>
