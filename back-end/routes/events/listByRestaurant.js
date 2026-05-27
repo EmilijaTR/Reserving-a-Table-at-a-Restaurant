@@ -12,7 +12,7 @@ router.get('/restaurant/:restaurantId', async (req, res) => {
 
     const [rows] = await promisePool.query(
       `SELECT e.event_id, e.restaurant_id, e.title, e.start_datetime, e.duration,
-              e.description, e.guest_capacity, e.price, e.picture
+              e.description, e.guest_capacity, e.price
        FROM \`Event\` e
        WHERE e.restaurant_id = ?
        ORDER BY e.start_datetime ASC`,

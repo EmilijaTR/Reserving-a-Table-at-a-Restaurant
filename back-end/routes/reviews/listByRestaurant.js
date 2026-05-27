@@ -23,7 +23,11 @@ router.get('/restaurant/:restaurantId', async (req, res) => {
     return res.json({ ok: true, reviews: rows })
   } catch (err) {
     console.error(err)
-    return res.status(500).json({ ok: false, message: 'Server error.' })
+  return res.status(500).json({
+    ok: false,
+    message: err.message,
+    code: err.code,
+  })
   }
 })
 

@@ -28,7 +28,6 @@ router.post('/', async (req, res) => {
       description,
       guest_capacity,
       price,
-      picture,
     } = req.body
 
     if (
@@ -78,13 +77,12 @@ router.post('/', async (req, res) => {
     await assertOwnerOwnsRestaurant(ownerId, rid)
 
     const descVal = description != null ? String(description) : ''
-    const picVal = picture != null ? String(picture) : ''
 
     const [result] = await promisePool.query(
       `INSERT INTO \`Event\`
-        (restaurant_id, title, start_datetime, duration, description, guest_capacity, price, picture)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [rid, title, start, dur, descVal, cap, prc, picVal]
+        (restaurant_id, title, start_datetime, duration, description, guest_capacity, price)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [rid, title, start, dur, descVal, cap, prc]
     )
 
     return res.status(201).json({

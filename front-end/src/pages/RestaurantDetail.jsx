@@ -191,9 +191,14 @@ export default function RestaurantDetail() {
         <p><strong>Email:</strong> {restaurant.email}</p>
         <p><strong>Hours:</strong> {restaurant.operating_hours}</p>
         <p><strong>Max capacity:</strong> {restaurant.guest_capacity} guests</p>
+        <p>
+          <Link to={`/restaurants/${id}/events`}>View events at this restaurant</Link>
+        </p>
       </section>
 
       {message && <p>{message}</p>}
+
+    
 
       <section className="news-item">
         <h2>Book a table</h2>

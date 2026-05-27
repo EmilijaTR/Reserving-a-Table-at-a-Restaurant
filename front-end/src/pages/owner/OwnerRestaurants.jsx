@@ -61,11 +61,14 @@ export default function OwnerRestaurants() {
             <p>Capacity: {r.guest_capacity}</p>
             <p>
               <Link to={`/owner/restaurants/${r.restaurant_id}/reservations`}>
-                Reservations
+                  Reservations
               </Link>
               {" · "}
               <Link to={`/owner/restaurants/${r.restaurant_id}/edit`}>
                 Edit profile
+              </Link>
+              <Link to={`/owner/restaurants/${r.restaurant_id}/events`}>
+                Events
               </Link>
             </p>
           </article>

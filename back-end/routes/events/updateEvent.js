@@ -40,7 +40,6 @@ router.patch('/:eventId', async (req, res) => {
       description,
       guest_capacity,
       price,
-      picture,
     } = req.body
 
     const fields = []
@@ -85,10 +84,6 @@ router.patch('/:eventId', async (req, res) => {
       }
       fields.push('price = ?')
       values.push(p)
-    }
-    if (picture != null) {
-      fields.push('picture = ?')
-      values.push(String(picture))
     }
 
     if (fields.length === 0) {

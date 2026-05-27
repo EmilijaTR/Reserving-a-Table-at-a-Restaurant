@@ -3,7 +3,7 @@ const { promisePool } = require('../../DB/dbConn')
 async function getEventById(eventId) {
   const [rows] = await promisePool.query(
     `SELECT e.event_id, e.restaurant_id, e.title, e.start_datetime, e.duration,
-            e.description, e.guest_capacity, e.price, e.picture,
+            e.description, e.guest_capacity, e.price,
             r.name AS restaurant_name
      FROM \`Event\` e
      JOIN Restaurant r ON r.restaurant_id = e.restaurant_id
