@@ -7,5 +7,6 @@ router.use(require('./mine'))
 router.use(require('./create'))
 router.use(require('./update'))
 router.use(require('./delete'))
+router.use(require('./uploadFiles'))
 
 module.exports = router

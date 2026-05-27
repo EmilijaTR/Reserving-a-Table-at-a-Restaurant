@@ -171,6 +171,21 @@ export default function RestaurantDetail() {
 
       <section className="news-hero">
         <h1>{restaurant.name}</h1>
+        {restaurant.picture && (
+          <img
+            src={`${API_URL}${restaurant.picture}`}
+            alt={restaurant.name}
+            style={{ maxWidth: "100%", maxHeight: "320px", borderRadius: "8px", marginBottom: "12px" }}
+          />
+        )}
+
+        {restaurant.menu && (
+          <p>
+            <a href={`${API_URL}${restaurant.menu}`} target="_blank" rel="noreferrer">
+              View menu (PDF)
+            </a>
+          </p>
+        )}
         <p>{restaurant.address}</p>
         <p><strong>Phone:</strong> {restaurant.phone}</p>
         <p><strong>Email:</strong> {restaurant.email}</p>

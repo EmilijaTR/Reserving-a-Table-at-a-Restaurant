@@ -7,6 +7,10 @@ import Register from "../pages/Register";
 import Restaurants from "../pages/Restaurants";
 import RestaurantDetail from "../pages/RestaurantDetail";
 import MyReservations from "../pages/MyReservations";
+import OwnerGuard from "../components/OwnerGuard";
+import OwnerRestaurants from "../pages/owner/OwnerRestaurants";
+import OwnerRestaurantForm from "../pages/owner/OwnerRestaurantForm";
+import OwnerReservations from "../pages/owner/OwnerReservations";
 
 export default function AppRouter() {
   return (
@@ -21,6 +25,38 @@ export default function AppRouter() {
         <Route path="/restaurants" element={<Restaurants />} />
         <Route path="/restaurants/:id" element={<RestaurantDetail />} />
         <Route path="/my-reservations" element={<MyReservations />} />
+        <Route
+        path="/owner/restaurants"
+        element={
+          <OwnerGuard>
+            <OwnerRestaurants />
+          </OwnerGuard>
+        }
+      />
+      <Route
+        path="/owner/restaurants/new"
+        element={
+          <OwnerGuard>
+            <OwnerRestaurantForm />
+          </OwnerGuard>
+        }
+      />
+      <Route
+        path="/owner/restaurants/:id/edit"
+        element={
+          <OwnerGuard>
+            <OwnerRestaurantForm />
+          </OwnerGuard>
+        }
+      />
+      <Route
+        path="/owner/restaurants/:id/reservations"
+        element={
+          <OwnerGuard>
+            <OwnerReservations />
+          </OwnerGuard>
+        }
+      />
       </Routes>
     </BrowserRouter>
   );
