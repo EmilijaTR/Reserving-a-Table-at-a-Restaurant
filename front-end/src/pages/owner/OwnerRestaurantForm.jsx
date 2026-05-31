@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { API_URL, uploadRestaurantFile } from "../../config/api";
 import { jsonAuthHeaders } from "../../config/auth";
+import { validateOperatingHoursInput } from "../../config/operatingHours";
 
 const emptyForm = {
   name: "",
   address: "",
   phone: "",
   email: "",
-  operating_hours: "",
+  operating_hours: "09:00-22:00",
   guest_capacity: "",
   menu: "",
   picture: "",
@@ -19,7 +20,6 @@ const textFields = [
   ["address", "Address", "text"],
   ["phone", "Phone", "text"],
   ["email", "Email", "email"],
-  ["operating_hours", "Operating hours", "text"],
   ["guest_capacity", "Guest capacity", "number"],
 ];
 
@@ -64,7 +64,7 @@ export default function OwnerRestaurantForm() {
             address: found.address || "",
             phone: found.phone || "",
             email: found.email || "",
-            operating_hours: found.operating_hours || "",
+            operating_hours: found.operating_hours || "09:00-22:00",
             guest_capacity: String(found.guest_capacity ?? ""),
             menu: found.menu || "",
             picture: found.picture || "",
@@ -96,6 +96,12 @@ export default function OwnerRestaurantForm() {
     setSaving(true);
 
     try {
+      const hoursCheck = validateOperatingHoursInput(form.operating_hours);
+      if (!hoursCheck.ok) {
+        setError(hoursCheck.message);
+        return;
+      }
+
       let picturePath = form.picture;
       let menuPath = form.menu;
 
@@ -111,7 +117,7 @@ export default function OwnerRestaurantForm() {
         address: form.address,
         phone: form.phone,
         email: form.email,
-        operating_hours: form.operating_hours,
+        operating_hours: hoursCheck.normalized,
         guest_capacity: Number(form.guest_capacity),
         picture: picturePath || "",
         menu: menuPath || "",
@@ -134,14 +140,13 @@ export default function OwnerRestaurantForm() {
         try {
           data = JSON.parse(text);
         } catch {
-          data = { message: "Invalid response." };
+          setError(`Server did not return JSON (${res.status}).`);
+          return;
         }
       }
 
       if (res.ok && data.ok) {
         setMessage(isEdit ? "Restaurant updated." : "Restaurant created.");
-        setPictureFile(null);
-        setMenuFile(null);
         setTimeout(() => navigate("/owner/restaurants"), 1000);
       } else {
         setError(data.message || `Failed (${res.status}).`);
@@ -184,6 +189,24 @@ export default function OwnerRestaurantForm() {
               />
             </div>
           ))}
+
+          <div>
+            <label>Operating hours (same every day)</label>
+            <input
+              name="operating_hours"
+              type="text"
+              value={form.operating_hours}
+              onChange={handleChange}
+              placeholder="09:00-22:00"
+              pattern="([01][0-9]|2[0-3]):[0-5][0-9]-([01][0-9]|2[0-3]):[0-5][0-9]"
+              title="Format HH:MM-HH:MM, e.g. 09:00-22:00"
+              required
+            />
+            <p style={{ fontSize: "0.85rem", color: "#6b7280", marginTop: "4px" }}>
+              Format: <strong>HH:MM-HH:MM</strong> (24-hour). Minutes :00 or :30 only.
+              Example: <strong>12:00-23:00</strong>
+            </p>
+          </div>
 
           <div>
             <label>Restaurant picture</label>

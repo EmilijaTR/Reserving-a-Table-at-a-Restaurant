@@ -2,13 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import { API_URL } from "../../config/api";
 import { jsonAuthHeaders } from "../../config/auth";
+import { getGridBoundsFromOperatingHours } from "../../config/operatingHours";
 
 /** Same idea as backend: each reservation blocks 2 hours from start */
 const DURATION_MS = 2 * 60 * 60 * 1000;
 const SLOT_MS = 30 * 60 * 1000;
 
-const VIEW_START_HOUR = 9;
-const VIEW_END_HOUR = 22; // last slot starts 21:30
 
 function pad(n) {
   return String(n).padStart(2, "0");
@@ -30,25 +29,28 @@ function formatSlotLabel(date) {
   });
 }
 
-function slotKeyForReservation(reservation, dayStart) {
+function slotKeyForReservation(reservation, openSlotIndex, closeSlotIndex) {
   const t = new Date(reservation.datetime);
   const minutesFromMidnight = t.getHours() * 60 + t.getMinutes();
   const slotIndex = Math.floor(minutesFromMidnight / 30);
-  const startIndex = VIEW_START_HOUR * 2;
-  const endIndex = VIEW_END_HOUR * 2 - 1;
-  const idx = Math.min(Math.max(slotIndex, startIndex), endIndex);
-  return idx;
+  const endIndex = closeSlotIndex - 1;
+  return Math.min(Math.max(slotIndex, openSlotIndex), endIndex);
 }
 
-function buildSlots(dayStart) {
+function buildSlots(dayStart, openSlotIndex, closeSlotIndex) {
   const slots = [];
-  for (let i = VIEW_START_HOUR * 2; i < VIEW_END_HOUR * 2; i++) {
+  for (let i = openSlotIndex; i < closeSlotIndex; i++) {
     const h = Math.floor(i / 2);
     const m = (i % 2) * 30;
     const start = new Date(dayStart);
     start.setHours(h, m, 0, 0);
     const end = new Date(start.getTime() + SLOT_MS);
-    slots.push({ index: i, start, end, label: `${formatSlotLabel(start)} – ${formatSlotLabel(end)}` });
+    slots.push({
+      index: i,
+      start,
+      end,
+      label: `${formatSlotLabel(start)} – ${formatSlotLabel(end)}`,
+    });
   }
   return slots;
 }
@@ -61,14 +63,14 @@ function reservationsForDay(list, ymd) {
 }
 
 /** Max overlapping guest_count in any 30-minute slice (pending only), 2h blocks from each res */
-function maxOverlapGuestsOnDay(dayReservations) {
+function maxOverlapGuestsOnDay(dayReservations, openSlotIndex, closeSlotIndex) {
   const pending = dayReservations.filter((r) => r.status === "pending");
   if (pending.length === 0) return 0;
 
   const day = parseYMD(toYMD(new Date(pending[0].datetime)));
   let max = 0;
 
-  for (let i = VIEW_START_HOUR * 2; i < VIEW_END_HOUR * 2; i++) {
+  for (let i = openSlotIndex; i < closeSlotIndex; i++) {
     const h = Math.floor(i / 2);
     const m = (i % 2) * 30;
     const slotStart = new Date(day);
@@ -106,6 +108,8 @@ export default function OwnerReservations() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [gridBounds, setGridBounds] = useState(getGridBoundsFromOperatingHours("09:00-22:00"));
+  const [hoursWarning, setHoursWarning] = useState("");
 
   const [selectedDate, setSelectedDate] = useState(() => toYMD(new Date()));
 
@@ -146,9 +150,18 @@ export default function OwnerReservations() {
           const r = (dataMine.restaurants || []).find(
             (x) => String(x.restaurant_id) === String(restaurantId)
           );
-          if (!cancelled && r) {
+            if (!cancelled && r) {
             setRestaurantName(r.name);
             setCapacity(Number(r.guest_capacity) || 0);
+            const bounds = getGridBoundsFromOperatingHours(r.operating_hours);
+            setGridBounds(bounds);
+            if (bounds.fromFallback) {
+              setHoursWarning(
+                "Operating hours are not in HH:MM-HH:MM format; showing default 09:00-22:00. Edit restaurant profile to fix."
+              );
+            } else {
+              setHoursWarning("");
+            }
           }
         }
         await loadReservations();
@@ -164,7 +177,10 @@ export default function OwnerReservations() {
   }, [restaurantId]);
 
   const dayStart = useMemo(() => parseYMD(selectedDate), [selectedDate]);
-  const slots = useMemo(() => buildSlots(dayStart), [dayStart]);
+   const slots = useMemo(
+    () => buildSlots(dayStart, gridBounds.openSlotIndex, gridBounds.closeSlotIndex),
+    [dayStart, gridBounds]
+  );
 
   const dayReservations = useMemo(
     () => reservationsForDay(reservations, selectedDate),
@@ -176,7 +192,15 @@ export default function OwnerReservations() {
     [dayReservations]
   );
 
-  const maxOverlap = useMemo(() => maxOverlapGuestsOnDay(dayReservations), [dayReservations]);
+  const maxOverlap = useMemo(
+    () =>
+      maxOverlapGuestsOnDay(
+        dayReservations,
+        gridBounds.openSlotIndex,
+        gridBounds.closeSlotIndex
+      ),
+    [dayReservations, gridBounds]
+  );
   const availableSeats = Math.max(0, capacity - maxOverlap);
 
   const bySlot = useMemo(() => {
@@ -185,12 +209,16 @@ export default function OwnerReservations() {
       map[s.index] = [];
     }
     for (const r of pendingDay) {
-      const idx = slotKeyForReservation(r, dayStart);
+      const idx = slotKeyForReservation(
+        r,
+        gridBounds.openSlotIndex,
+        gridBounds.closeSlotIndex
+      );
       if (!map[idx]) map[idx] = [];
       map[idx].push(r);
     }
     return map;
-  }, [pendingDay, slots, dayStart]);
+  }, [pendingDay, slots, gridBounds]);
 
   async function patchAction(reservationId, action) {
     setMessage("");
@@ -265,8 +293,14 @@ export default function OwnerReservations() {
   }
 
   const now = new Date();
-  const activeSlotIndex =
-    toYMD(now) === selectedDate ? slotKeyForReservation({ datetime: now.toISOString() }, dayStart) : null;
+    const activeSlotIndex =
+    toYMD(now) === selectedDate
+      ? slotKeyForReservation(
+          { datetime: now.toISOString() },
+          gridBounds.openSlotIndex,
+          gridBounds.closeSlotIndex
+        )
+      : null;
 
   return (
     <main className="news-page res-board">
@@ -275,6 +309,13 @@ export default function OwnerReservations() {
       <section className="news-hero">
         <h1>Reservations — {restaurantName || `Restaurant #${restaurantId}`}</h1>
       </section>
+
+       {hoursWarning && <p style={{ color: "#b45309" }}>{hoursWarning}</p>}
+      {!hoursWarning && gridBounds.normalized && (
+        <p style={{ fontSize: "0.9rem", color: "#6b7280" }}>
+          Hours: {gridBounds.normalized} (same every day)
+        </p>
+      )}
 
       {loading && <p>Loading...</p>}
       {error && <p>{error}</p>}

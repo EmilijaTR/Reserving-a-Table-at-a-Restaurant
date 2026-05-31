@@ -1,6 +1,7 @@
 const express = require('express')
 const { promisePool } = require('../../DB/dbConn')
 const { getOwnerIdFromRequest, assertOwner } = require('./ownerContext')
+const { validateOperatingHours } = require('./operatingHours')
 
 const router = express.Router()
 
@@ -43,6 +44,11 @@ router.post('/', async (req, res) => {
       })
     }
 
+        const hoursCheck = validateOperatingHours(operating_hours)
+    if (!hoursCheck.ok) {
+      return res.status(400).json({ ok: false, message: hoursCheck.message })
+    }
+
     const menuVal = menu != null ? String(menu) : ''
     const pictureVal = picture != null ? String(picture) : ''
 
@@ -56,7 +62,7 @@ router.post('/', async (req, res) => {
         address,
         phone,
         email,
-        operating_hours,
+        hoursCheck.normalized,,
         cap,
         menuVal,
         pictureVal,
