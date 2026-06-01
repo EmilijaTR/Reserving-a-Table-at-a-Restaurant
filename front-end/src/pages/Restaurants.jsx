@@ -1,11 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
 import { API_URL } from "../config/api";
 import RestaurantCard from "../components/RestaurantCard";
 
 export default function Restaurants() {
+  const [searchParams] = useSearchParams();
+  const where = (searchParams.get("where") || "").trim().toLowerCase();
+  const when = searchParams.get("when") || "";
+  const guests = searchParams.get("guests") || "";
+
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const filtered = useMemo(() => {
+    if (!where) return restaurants;
+    return restaurants.filter((r) => {
+      const name = (r.name || "").toLowerCase();
+      const address = (r.address || "").toLowerCase();
+      return name.includes(where) || address.includes(where);
+    });
+  }, [restaurants, where]);
 
   useEffect(() => {
     async function loadRestaurants() {
@@ -42,21 +57,32 @@ export default function Restaurants() {
   }, []);
 
   return (
-    <main className="news-page">
-      <section className="news-hero">
+    <main>
+      <header className="page-header">
         <h1>Restaurants</h1>
-        <p>Choose a restaurant to view details and book a table.</p>
-      </section>
+        <p>Choose a restaurant to view details, menu, and book a table.</p>
+        {(where || when || guests) && (
+          <p className="text-muted" style={{ marginTop: "8px" }}>
+            {where && <>Search: <strong>{searchParams.get("where")}</strong></>}
+            {when && <> · Date: <strong>{when}</strong></>}
+            {guests && <> · Guests: <strong>{guests}</strong></>}
+          </p>
+        )}
+      </header>
 
-      {loading && <p>Loading restaurants...</p>}
-      {error && <p>{error}</p>}
+      {loading && <p className="text-muted">Loading restaurants…</p>}
+      {error && <p className="alert alert-error">{error}</p>}
 
       {!loading && !error && restaurants.length === 0 && (
-        <p>No restaurants yet.</p>
+        <p className="text-muted">No restaurants yet.</p>
       )}
 
-      <section className="news-grid">
-        {restaurants.map((r) => (
+      {!loading && !error && restaurants.length > 0 && filtered.length === 0 && (
+        <p className="text-muted">No restaurants match your search.</p>
+      )}
+
+      <section className="card-grid">
+        {filtered.map((r) => (
           <RestaurantCard key={r.restaurant_id} restaurant={r} />
         ))}
       </section>

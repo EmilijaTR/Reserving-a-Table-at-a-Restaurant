@@ -1,21 +1,25 @@
 export default function About() {
   return (
-    <main className="about-page">
-      <section className="about-hero">
-        <h1>About</h1>
+    <main>
+      <header className="page-header">
+        <h1>About RESTABLE</h1>
         <p>
-          RESTABLE is an information system for online table and event
-          reservations at restaurants.
+          An information system for online table and event reservations at
+          restaurants — built as a student project.
         </p>
-      </section>
+      </header>
 
-      <section className="about-content">
-        <h2>Features</h2>
+      <section className="page-section">
+        <h2>What you can do</h2>
         <ul>
-          <li>Browse restaurants and book a table</li>
-          <li>Reviews and loyalty points</li>
-          <li>Restaurant owners manage profile, reservations, and events</li>
-          <li>And so on, this will be changed anyways</li>
+          <li>Browse restaurants and book a table online</li>
+          <li>Earn loyalty points and use discounts on reservations</li>
+          <li>Leave reviews after completed visits</li>
+          <li>Book tickets for restaurant events</li>
+          <li>
+            Restaurant owners manage their profile, daily reservation grid,
+            walk-ins, and events
+          </li>
         </ul>
       </section>
     </main>

@@ -166,46 +166,51 @@ export default function RestaurantDetail() {
   }
 
   return (
-    <main className="news-page">
+    <main>
       <Link to="/restaurants">← Back to restaurants</Link>
 
-      <section className="news-hero">
-        <h1>{restaurant.name}</h1>
+      <section className="card detail-hero" style={{ marginTop: "16px" }}>
         {restaurant.picture && (
           <img
+            className="detail-hero-image"
             src={`${API_URL}${restaurant.picture}`}
             alt={restaurant.name}
-            style={{ maxWidth: "100%", maxHeight: "320px", borderRadius: "8px", marginBottom: "12px" }}
           />
         )}
-
-        {restaurant.menu && (
-          <p>
-            <a href={`${API_URL}${restaurant.menu}`} target="_blank" rel="noreferrer">
-              View menu (PDF)
-            </a>
+        <div className="detail-hero-body">
+          <h1>{restaurant.name}</h1>
+          {restaurant.menu && (
+            <p>
+              <a href={`${API_URL}${restaurant.menu}`} target="_blank" rel="noreferrer">
+                View menu (PDF)
+              </a>
+            </p>
+          )}
+          <div className="detail-meta">
+            <p>{restaurant.address}</p>
+            <p><strong>Phone:</strong> {restaurant.phone}</p>
+            <p><strong>Email:</strong> {restaurant.email}</p>
+            <p><strong>Hours:</strong> {restaurant.operating_hours}</p>
+            <p><strong>Max capacity:</strong> {restaurant.guest_capacity} guests</p>
+          </div>
+          <p style={{ marginTop: "12px" }}>
+            <Link to={`/restaurants/${id}/events`} className="btn btn-ghost btn-sm">
+              View events
+            </Link>
           </p>
-        )}
-        <p>{restaurant.address}</p>
-        <p><strong>Phone:</strong> {restaurant.phone}</p>
-        <p><strong>Email:</strong> {restaurant.email}</p>
-        <p><strong>Hours:</strong> {restaurant.operating_hours}</p>
-        <p><strong>Max capacity:</strong> {restaurant.guest_capacity} guests</p>
-        <p>
-          <Link to={`/restaurants/${id}/events`}>View events at this restaurant</Link>
-        </p>
+        </div>
       </section>
 
-      {message && <p>{message}</p>}
+      {message && <p className="alert alert-success">{message}</p>}
 
     
 
-      <section className="news-item">
+      <section className="page-section">
         <h2>Book a table</h2>
         {!user && <p><Link to="/login">Login</Link> as a customer to book.</p>}
         {user && user.role === "c" && (
           <form onSubmit={handleBook}>
-            <div>
+            <div className="form-field">
               <label>Date and time</label>
               <input
                 type="datetime-local"
@@ -214,7 +219,7 @@ export default function RestaurantDetail() {
                 required
               />
             </div>
-            <div>
+            <div className="form-field">
               <label>Number of guests</label>
               <input
                 type="number"
@@ -224,7 +229,7 @@ export default function RestaurantDetail() {
                 required
               />
             </div>
-            <div>
+            <div className="form-field">
               <label>Notes (optional)</label>
               <textarea
                 rows="3"
@@ -247,11 +252,11 @@ export default function RestaurantDetail() {
         )}
       </section>
 
-      <section className="news-item">
+      <section className="page-section">
         <h2>Reviews</h2>
-        {reviews.length === 0 && <p>No reviews yet.</p>}
+        {reviews.length === 0 && <p className="text-muted">No reviews yet.</p>}
         {reviews.map((rev) => (
-          <article key={rev.review_id} style={{ marginBottom: "16px" }}>
+          <article key={rev.review_id} className="review-item">
             <p><strong>{rev.reviewer_name || "Customer"}</strong> — {rev.rating}/5</p>
             <p>{rev.comment}</p>
           </article>
@@ -259,13 +264,13 @@ export default function RestaurantDetail() {
       </section>
 
       {user && user.role === "c" && (
-        <section className="news-item">
+        <section className="page-section">
           <h2>Write a review</h2>
-          <p style={{ fontSize: "0.9rem", color: "#6b7280" }}>
+          <p className="text-muted">
             You need at least one completed reservation at this restaurant.
           </p>
           <form onSubmit={handleReview}>
-            <div>
+            <div className="form-field">
               <label>Rating (1–5)</label>
               <input
                 type="number"
@@ -276,7 +281,7 @@ export default function RestaurantDetail() {
                 required
               />
             </div>
-            <div>
+            <div className="form-field">
               <label>Comment</label>
               <textarea
                 rows="3"

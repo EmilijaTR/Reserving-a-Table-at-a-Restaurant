@@ -15,14 +15,6 @@ const emptyForm = {
   picture: "",
 };
 
-const textFields = [
-  ["name", "Name", "text"],
-  ["address", "Address", "text"],
-  ["phone", "Phone", "text"],
-  ["email", "Email", "email"],
-  ["guest_capacity", "Guest capacity", "number"],
-];
-
 export default function OwnerRestaurantForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -161,82 +153,154 @@ export default function OwnerRestaurantForm() {
 
   if (loading) {
     return (
-      <main>
-        <p>Loading...</p>
+      <main className="form-page">
+        <p className="text-muted">Loading…</p>
       </main>
     );
   }
 
   return (
-    <main className="login-page">
-      <section className="login-card" style={{ maxWidth: "560px" }}>
-        <Link to="/owner/restaurants">← Back</Link>
+    <main className="form-page">
+      <Link to="/owner/restaurants">← My restaurants</Link>
+
+      <header className="page-header" style={{ marginTop: "16px" }}>
         <h1>{isEdit ? "Edit restaurant" : "New restaurant"}</h1>
+        <p>Add your venue details. Guests will see this on the restaurant page.</p>
+      </header>
 
-        {error && <p>{error}</p>}
-        {message && <p>{message}</p>}
+      {error && <p className="alert alert-error">{error}</p>}
+      {message && <p className="alert alert-success">{message}</p>}
 
-        <form onSubmit={handleSubmit}>
-          {textFields.map(([name, label, type]) => (
-            <div key={name}>
-              <label>{label}</label>
+      <form onSubmit={handleSubmit}>
+        <section className="form-section">
+          <h2 className="form-section-title">Basic information</h2>
+          <p className="form-section-desc">Name, location, and contact details.</p>
+
+          <div className="form-grid">
+            <div className="form-field form-field--full">
+              <label htmlFor="name">Restaurant name</label>
               <input
-                name={name}
-                type={type}
-                value={form[name]}
+                id="name"
+                name="name"
+                type="text"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="e.g. Restaurant1"
+                required
+              />
+            </div>
+            <div className="form-field form-field--full">
+              <label htmlFor="address">Address</label>
+              <input
+                id="address"
+                name="address"
+                type="text"
+                value={form.address}
+                onChange={handleChange}
+                placeholder="Street, city"
+                required
+              />
+            </div>
+            <div className="form-field">
+              <label htmlFor="phone">Phone</label>
+              <input
+                id="phone"
+                name="phone"
+                type="text"
+                value={form.phone}
                 onChange={handleChange}
                 required
               />
             </div>
-          ))}
-
-          <div>
-            <label>Operating hours (same every day)</label>
-            <input
-              name="operating_hours"
-              type="text"
-              value={form.operating_hours}
-              onChange={handleChange}
-              placeholder="09:00-22:00"
-              pattern="([01][0-9]|2[0-3]):[0-5][0-9]-([01][0-9]|2[0-3]):[0-5][0-9]"
-              title="Format HH:MM-HH:MM, e.g. 09:00-22:00"
-              required
-            />
-            <p style={{ fontSize: "0.85rem", color: "#6b7280", marginTop: "4px" }}>
-              Format: <strong>HH:MM-HH:MM</strong> (24-hour). Minutes :00 or :30 only.
-              Example: <strong>12:00-23:00</strong>
-            </p>
+            <div className="form-field">
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
           </div>
+        </section>
 
-          <div>
+        <section className="form-section">
+          <h2 className="form-section-title">Hours & capacity</h2>
+          <p className="form-section-desc">
+            Used for the reservation grid and availability checks.
+          </p>
+
+          <div className="form-grid">
+            <div className="form-field">
+              <label htmlFor="operating_hours">Operating hours (every day)</label>
+              <input
+                id="operating_hours"
+                name="operating_hours"
+                type="text"
+                value={form.operating_hours}
+                onChange={handleChange}
+                placeholder="09:00-22:00"
+                pattern="([01][0-9]|2[0-3]):[0-5][0-9]-([01][0-9]|2[0-3]):[0-5][0-9]"
+                title="Format HH:MM-HH:MM, e.g. 09:00-22:00"
+                required
+              />
+              <p className="form-hint">
+                Format <strong>HH:MM-HH:MM</strong> (24h). Minutes :00 or :30 only.
+              </p>
+            </div>
+            <div className="form-field">
+              <label htmlFor="guest_capacity">Guest capacity</label>
+              <input
+                id="guest_capacity"
+                name="guest_capacity"
+                type="number"
+                min="1"
+                value={form.guest_capacity}
+                onChange={handleChange}
+                placeholder="e.g. 40"
+                required
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="form-section">
+          <h2 className="form-section-title">Photos & menu</h2>
+          <p className="form-section-desc">Optional files shown on your public page.</p>
+
+          <div className="form-field">
             <label>Restaurant picture</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setPictureFile(e.target.files?.[0] || null)}
-            />
-            {pictureFile && (
-              <p style={{ fontSize: "0.9rem" }}>Selected: {pictureFile.name}</p>
-            )}
+            <div className="file-zone">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setPictureFile(e.target.files?.[0] || null)}
+              />
+              {pictureFile && <p>Selected: {pictureFile.name}</p>}
+              {!pictureFile && <p>JPG or PNG, shown on listings</p>}
+            </div>
             {form.picture && (
               <img
                 src={`${API_URL}${form.picture}`}
-                alt="Restaurant"
-                style={{ maxWidth: "200px", marginTop: "8px", display: "block" }}
+                alt="Current restaurant"
+                style={{ maxWidth: "220px", marginTop: "12px", borderRadius: "8px" }}
               />
             )}
           </div>
 
-          <div>
+          <div className="form-field">
             <label>Menu (PDF)</label>
-            <input
-              type="file"
-              accept="application/pdf,.pdf"
-              onChange={(e) => setMenuFile(e.target.files?.[0] || null)}
-            />
-            {menuFile && (
-              <p style={{ fontSize: "0.9rem" }}>Selected: {menuFile.name}</p>
-            )}
+            <div className="file-zone">
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={(e) => setMenuFile(e.target.files?.[0] || null)}
+              />
+              {menuFile && <p>Selected: {menuFile.name}</p>}
+              {!menuFile && <p>Upload your menu as PDF</p>}
+            </div>
             {form.menu && (
               <p style={{ marginTop: "8px" }}>
                 <a href={`${API_URL}${form.menu}`} target="_blank" rel="noreferrer">
@@ -245,12 +309,17 @@ export default function OwnerRestaurantForm() {
               </p>
             )}
           </div>
+        </section>
 
-          <button type="submit" disabled={saving}>
-            {saving ? "Saving..." : isEdit ? "Save" : "Create"}
+        <div className="form-actions">
+          <button type="submit" className="btn btn-primary" disabled={saving}>
+            {saving ? "Saving…" : isEdit ? "Save changes" : "Create restaurant"}
           </button>
-        </form>
-      </section>
+          <Link to="/owner/restaurants" className="btn btn-ghost">
+            Cancel
+          </Link>
+        </div>
+      </form>
     </main>
   );
 }

@@ -303,23 +303,21 @@ export default function OwnerReservations() {
       : null;
 
   return (
-    <main className="news-page res-board">
+    <main className="news-page res-board page-wide">
       <Link to="/owner/restaurants">← My restaurants</Link>
 
-      <section className="news-hero">
+      <header className="page-header" style={{ marginTop: "16px" }}>
         <h1>Reservations — {restaurantName || `Restaurant #${restaurantId}`}</h1>
-      </section>
+        {gridBounds.normalized && !hoursWarning && (
+          <p>Hours: {gridBounds.normalized} (same every day)</p>
+        )}
+      </header>
 
-       {hoursWarning && <p style={{ color: "#b45309" }}>{hoursWarning}</p>}
-      {!hoursWarning && gridBounds.normalized && (
-        <p style={{ fontSize: "0.9rem", color: "#6b7280" }}>
-          Hours: {gridBounds.normalized} (same every day)
-        </p>
-      )}
+      {hoursWarning && <p className="alert alert-warning">{hoursWarning}</p>}
 
-      {loading && <p>Loading...</p>}
-      {error && <p>{error}</p>}
-      {message && <p>{message}</p>}
+      {loading && <p className="text-muted">Loading…</p>}
+      {error && <p className="alert alert-error">{error}</p>}
+      {message && <p className="alert alert-success">{message}</p>}
 
       <div className="res-board-toolbar">
         <label>
@@ -333,6 +331,7 @@ export default function OwnerReservations() {
         <span className="res-board-badge">Available seats: {availableSeats}</span>
         <button
           type="button"
+          className="btn btn-primary"
           onClick={() => {
             const d = parseYMD(selectedDate);
             d.setHours(12, 0, 0, 0);
@@ -396,11 +395,9 @@ export default function OwnerReservations() {
 
       <p className="res-legend">% = discount used</p>
 
-      <section className="news-item" id="walkin-form">
+      <section className="page-section" id="walkin-form">
         <h2>Add walk-in</h2>
-        <p style={{ fontSize: "0.9rem", color: "#6b7280" }}>
-          Put guest name / phone in notes.
-        </p>
+        <p className="text-muted">Put guest name / phone in notes.</p>
         <form onSubmit={handleWalkIn}>
           <div>
             <label>Date and time</label>
@@ -433,9 +430,9 @@ export default function OwnerReservations() {
         </form>
       </section>
 
-      <section className="news-item" style={{ marginTop: "24px" }}>
+      <section className="page-section">
         <h2>All reservations (any day)</h2>
-        <p style={{ fontSize: "0.85rem", color: "#6b7280" }}>
+        <p className="text-muted">
           Scroll for full history. Grid above shows only <strong>pending</strong> for the selected day.
         </p>
         <ul style={{ paddingLeft: "18px" }}>

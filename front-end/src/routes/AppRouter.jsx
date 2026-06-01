@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router";
-import Menu from "../components/Menu";
+import Layout from "../components/Layout";
 
 import Home from "../pages/Home";
 import About from "../pages/About";
@@ -15,6 +15,7 @@ import OwnerRestaurantForm from "../pages/owner/OwnerRestaurantForm";
 import OwnerReservations from "../pages/owner/OwnerReservations";
 
 import RestaurantEvents from "../pages/RestaurantEvents";
+import EventsBrowse from "../pages/EventsBrowse";
 import EventDetail from "../pages/EventDetail";
 import MyEventReservations from "../pages/MyEventReservations";
 import OwnerEventsList from "../pages/owner/OwnerEventsList";
@@ -24,8 +25,7 @@ import OwnerEventBookings from "../pages/owner/OwnerEventBookings";
 export default function AppRouter() {
   return (
     <BrowserRouter>
-      <Menu />
-
+      <Layout>
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Home />} />
@@ -42,6 +42,7 @@ export default function AppRouter() {
           path="/restaurants/:id/events"
           element={<RestaurantEvents />}
         />
+        <Route path="/events" element={<EventsBrowse />} />
         <Route path="/events/:eventId" element={<EventDetail />} />
         <Route
           path="/my-event-reservations"
@@ -116,6 +117,7 @@ export default function AppRouter() {
           }
         />
       </Routes>
+      </Layout>
     </BrowserRouter>
   );
 }
