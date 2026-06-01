@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { API_URL } from "../config/api";
+import { getStoredUser } from "../config/auth";
 import RestaurantSearchBar, { todayForInput } from "../components/RestaurantSearchBar";
 
 const PREVIEW_COUNT = 8;
@@ -79,6 +80,7 @@ export default function Home() {
   }
 
   const restaurantPreview = restaurants.slice(0, PREVIEW_COUNT);
+  const user = getStoredUser();
 
   return (
     <main className="home-page">
@@ -197,22 +199,24 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="home-cta-band">
-        <div className="home-cta-card">
-          <h2>Are you a restaurant owner?</h2>
-          <p>List your venue, manage tables, and host events.</p>
-          <Link to="/register?role=o" className="btn btn-primary">
-            Register your restaurant
-          </Link>
-        </div>
-        <div className="home-cta-card home-cta-card--alt">
-          <h2>Already a client?</h2>
-          <p>Sign in to book, track points, and manage reservations.</p>
-          <Link to="/login" className="btn btn-ghost">
-            Log in
-          </Link>
-        </div>
-      </section>
+      {!user && (
+        <section className="home-cta-band">
+          <div className="home-cta-card">
+            <h2>Are you a restaurant owner?</h2>
+            <p>List your venue, manage tables, and host events.</p>
+            <Link to="/register?role=o" className="btn btn-primary">
+              Register your restaurant
+            </Link>
+          </div>
+          <div className="home-cta-card home-cta-card--alt">
+            <h2>Already a client?</h2>
+            <p>Sign in to book, track points, and manage reservations.</p>
+            <Link to="/login" className="btn btn-ghost">
+              Log in
+            </Link>
+          </div>
+        </section>
+      )}
     </main>
   );
 }

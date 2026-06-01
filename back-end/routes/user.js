@@ -6,6 +6,48 @@ const SALT_ROUNDS = 10
 
 const router = express.Router()
 
+function getUserIdFromRequest(req) {
+  const raw = req.headers['x-user-id']
+  const id = raw != null ? parseInt(String(raw), 10) : NaN
+  return Number.isFinite(id) && id > 0 ? id : null
+}
+
+router.get('/me', async (req, res) => {
+  try {
+    const userId = getUserIdFromRequest(req)
+    if (!userId) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Missing or invalid X-User-Id.',
+      })
+    }
+
+    const [rows] = await promisePool.query(
+      'SELECT user_id, name, email, role, points FROM `User` WHERE user_id = ?',
+      [userId]
+    )
+
+    if (rows.length === 0) {
+      return res.status(404).json({ ok: false, message: 'User not found.' })
+    }
+
+    const u = rows[0]
+    return res.json({
+      ok: true,
+      user: {
+        user_id: u.user_id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        points: u.points,
+      },
+    })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ ok: false, message: 'Server error.' })
+  }
+})
+
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role } = req.body

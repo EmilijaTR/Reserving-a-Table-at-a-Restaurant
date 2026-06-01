@@ -1,12 +1,26 @@
-import { Link, useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router";
 import { getStoredUser, clearStoredUser } from "../config/auth";
+import { refreshCurrentUser } from "../config/userApi";
 
 export default function Menu() {
   const navigate = useNavigate();
-  const user = getStoredUser();
+  const location = useLocation();
+  const [user, setUser] = useState(getStoredUser());
+
+  useEffect(() => {
+    const stored = getStoredUser();
+    setUser(stored);
+    if (stored?.role === "c") {
+      refreshCurrentUser().then((u) => {
+        if (u) setUser(u);
+      });
+    }
+  }, [location.pathname]);
 
   function handleLogout() {
     clearStoredUser();
+    setUser(null);
     navigate("/login");
   }
 
@@ -17,9 +31,25 @@ export default function Menu() {
           RESTABLE
         </Link>
 
-        <div className="site-nav-links">
+        <div className="site-nav-right">
           <Link to="/restaurants">Restaurants</Link>
-          <Link to="/about">About</Link>
+          <Link to="/events">Events</Link>
+
+          {user?.role === "c" && (
+            <>
+              <span className="nav-points">{user.points ?? 0} points</span>
+              <Link to="/profile" className="nav-profile">
+                {user.name}
+              </Link>
+            </>
+          )}
+
+          {user?.role === "o" && (
+            <>
+              <Link to="/owner/restaurants">My restaurants</Link>
+              <span className="nav-profile nav-profile--static">{user.name}</span>
+            </>
+          )}
 
           {!user && (
             <>
@@ -30,29 +60,12 @@ export default function Menu() {
             </>
           )}
 
-          {user && user.role === "o" && (
-            <Link to="/owner/restaurants">My restaurants</Link>
-          )}
-
-          {user?.role === "c" && (
-            <>
-              <Link to="/my-reservations">My reservations</Link>
-              <Link to="/my-event-reservations">Event bookings</Link>
-            </>
-          )}
-        </div>
-
-        {user && (
-          <div className="site-nav-user">
-            <span className="user-pill">
-              {user.name}
-              <small>{user.role === "o" ? "Owner" : "Customer"}</small>
-            </span>
+          {user && (
             <button type="button" className="btn btn-ghost btn-sm" onClick={handleLogout}>
               Logout
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </nav>
     </header>
   );

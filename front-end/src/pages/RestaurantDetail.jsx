@@ -9,6 +9,7 @@ export default function RestaurantDetail() {
   const user = getStoredUser();
 
   const [restaurant, setRestaurant] = useState(null);
+  const [events, setEvents] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -43,6 +44,16 @@ export default function RestaurantDetail() {
           return;
         }
         setRestaurant(found);
+
+        const resEv = await fetch(`${API_URL}/events/restaurant/${id}`);
+        const dataEv = await resEv.json();
+        if (resEv.ok) {
+          const now = Date.now();
+          const upcoming = (dataEv.events || [])
+            .filter((ev) => new Date(ev.start_datetime).getTime() >= now)
+            .sort((a, b) => new Date(a.start_datetime) - new Date(b.start_datetime));
+          setEvents(upcoming);
+        }
 
         const resRev = await fetch(`${API_URL}/reviews/restaurant/${id}`);
         const dataRev = await resRev.json();
@@ -193,12 +204,47 @@ export default function RestaurantDetail() {
             <p><strong>Hours:</strong> {restaurant.operating_hours}</p>
             <p><strong>Max capacity:</strong> {restaurant.guest_capacity} guests</p>
           </div>
-          <p style={{ marginTop: "12px" }}>
-            <Link to={`/restaurants/${id}/events`} className="btn btn-ghost btn-sm">
-              View events
-            </Link>
-          </p>
         </div>
+      </section>
+
+      <section className="detail-events">
+        <h2>Events at this restaurant</h2>
+        {events.length === 0 && (
+          <p className="text-muted">No upcoming events scheduled.</p>
+        )}
+        {events.length > 0 && (
+          <div className="home-scroll">
+            {events.map((ev) => (
+              <Link
+                key={ev.event_id}
+                to={`/events/${ev.event_id}`}
+                className="home-tile"
+              >
+                <div className="home-tile-image home-tile-image--event">
+                  <span className="home-tile-date">
+                    {new Date(ev.start_datetime).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                </div>
+                <div className="home-tile-body">
+                  <h3>{ev.title}</h3>
+                  <p>
+                    {new Date(ev.start_datetime).toLocaleTimeString(undefined, {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                  <span className="home-tile-meta">
+                    {ev.price != null && `${ev.price} € · `}
+                    Up to {ev.guest_capacity} guests
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {message && <p className="alert alert-success">{message}</p>}

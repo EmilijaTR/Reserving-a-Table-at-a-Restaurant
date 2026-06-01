@@ -16,14 +16,12 @@ export default function Footer() {
             <li><Link to="/about">About us</Link></li>
             <li><Link to="/restaurants">Restaurants</Link></li>
             <li><Link to="/events">Events</Link></li>
-            <li><Link to="/register">Register</Link></li>
           </ul>
         </div>
         <div>
           <p className="site-footer-heading">Account</p>
           <ul className="site-footer-links">
-            <li><Link to="/login">Login</Link></li>
-            <li><Link to="/my-reservations">My reservations</Link></li>
+            <li><Link to="/profile">My profile</Link></li>
           </ul>
         </div>
       </div>

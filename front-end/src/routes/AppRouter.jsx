@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import Layout from "../components/Layout";
 
 import Home from "../pages/Home";
@@ -8,6 +8,12 @@ import Register from "../pages/Register";
 import Restaurants from "../pages/Restaurants";
 import RestaurantDetail from "../pages/RestaurantDetail";
 import MyReservations from "../pages/MyReservations";
+import CustomerGuard from "../components/CustomerGuard";
+import ProfileLayout from "../components/ProfileLayout";
+import ReservationsUpcoming from "../pages/profile/ReservationsUpcoming";
+import ReservationsPast from "../pages/profile/ReservationsPast";
+import EventsUpcoming from "../pages/profile/EventsUpcoming";
+import EventsPast from "../pages/profile/EventsPast";
 
 import OwnerGuard from "../components/OwnerGuard";
 import OwnerRestaurants from "../pages/owner/OwnerRestaurants";
@@ -36,6 +42,21 @@ export default function AppRouter() {
         <Route path="/restaurants" element={<Restaurants />} />
         <Route path="/restaurants/:id" element={<RestaurantDetail />} />
         <Route path="/my-reservations" element={<MyReservations />} />
+
+        <Route
+          path="/profile"
+          element={
+            <CustomerGuard>
+              <ProfileLayout />
+            </CustomerGuard>
+          }
+        >
+          <Route index element={<Navigate to="reservations/upcoming" replace />} />
+          <Route path="reservations/upcoming" element={<ReservationsUpcoming />} />
+          <Route path="reservations/past" element={<ReservationsPast />} />
+          <Route path="events/upcoming" element={<EventsUpcoming />} />
+          <Route path="events/past" element={<EventsPast />} />
+        </Route>
 
         {/* Events - Public */}
         <Route
