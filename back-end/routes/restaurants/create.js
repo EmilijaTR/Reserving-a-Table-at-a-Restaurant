@@ -62,7 +62,7 @@ router.post('/', async (req, res) => {
         address,
         phone,
         email,
-        hoursCheck.normalized,,
+        hoursCheck.normalized,
         cap,
         menuVal,
         pictureVal,
