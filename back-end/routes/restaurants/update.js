@@ -1,6 +1,7 @@
 const express = require('express')
 const { promisePool } = require('../../DB/dbConn')
 const { getOwnerIdFromRequest, assertOwner } = require('./ownerContext')
+const { validateOperatingHours } = require('./operatingHours')
 
 const router = express.Router()
 
@@ -62,13 +63,13 @@ router.put('/:id', async (req, res) => {
       fields.push('email = ?')
       values.push(email)
     }
-      if (operating_hours != null) {
-    const hoursCheck = validateOperatingHours(operating_hours)
-    if (!hoursCheck.ok) {
-      return res.status(400).json({ ok: false, message: hoursCheck.message })
-    }
-    fields.push('operating_hours = ?')
-    values.push(hoursCheck.normalized)
+    if (operating_hours != null) {
+      const hoursCheck = validateOperatingHours(operating_hours)
+      if (!hoursCheck.ok) {
+        return res.status(400).json({ ok: false, message: hoursCheck.message })
+      }
+      fields.push('operating_hours = ?')
+      values.push(hoursCheck.normalized)
     }
     if (guest_capacity != null) {
       const cap = parseInt(String(guest_capacity), 10)
