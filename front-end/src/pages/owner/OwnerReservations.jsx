@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 import { API_URL } from "../../config/api";
 import { jsonAuthHeaders } from "../../config/auth";
 import { getGridBoundsFromOperatingHours } from "../../config/operatingHours";
+import { minDatetimeLocalNow } from "../../utils/bookingTime";
 
 /** Same idea as backend: each reservation blocks 2 hours from start */
 const DURATION_MS = 2 * 60 * 60 * 1000;
@@ -404,6 +405,7 @@ export default function OwnerReservations() {
             <input
               type="datetime-local"
               value={datetime}
+              min={minDatetimeLocalNow()}
               onChange={(e) => setDatetime(e.target.value)}
               required
             />

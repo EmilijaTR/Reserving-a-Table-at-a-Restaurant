@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router";
 import { API_URL } from "../config/api";
 import { getStoredUser, jsonAuthHeaders } from "../config/auth";
+import {
+  isValidCustomerBookingTime,
+  minDatetimeLocalTwoHoursAhead,
+} from "../utils/bookingTime";
 
 export default function RestaurantDetail() {
   const { id } = useParams();
@@ -84,13 +88,18 @@ export default function RestaurantDetail() {
       return;
     }
 
+    if (!isValidCustomerBookingTime(datetime)) {
+      setMessage("Please choose a time at least 2 hours from now.");
+      return;
+    }
+
     try {
       const res = await fetch(`${API_URL}/reservations`, {
         method: "POST",
         headers: jsonAuthHeaders(),
         body: JSON.stringify({
           restaurant_id: Number(id),
-          datetime,
+          datetime: new Date(datetime).toISOString(),
           guest_count: Number(guestCount),
           notes,
           use_discount: useDiscount,
@@ -261,9 +270,13 @@ export default function RestaurantDetail() {
               <input
                 type="datetime-local"
                 value={datetime}
+                min={minDatetimeLocalTwoHoursAhead()}
                 onChange={(e) => setDatetime(e.target.value)}
                 required
               />
+              <p className="form-hint">
+                Earliest booking is 2 hours from now.
+              </p>
             </div>
             <div className="form-field">
               <label>Number of guests</label>

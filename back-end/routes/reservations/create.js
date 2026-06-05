@@ -8,6 +8,7 @@ const {
   DEFAULT_DURATION_HOURS,
 } = require('./reservationCapacity')
 const { applyDiscountPoints } = require('./points')
+const { validateBookingDatetime } = require('./bookingTime')
 
 const router = express.Router()
 
@@ -53,6 +54,11 @@ router.post('/', async (req, res) => {
         ok: false,
         message: 'Invalid datetime. Use ISO format, e.g. 2026-05-20T19:00:00',
       })
+    }
+
+    const timeCheck = validateBookingDatetime(start, role)
+    if (!timeCheck.ok) {
+      return res.status(400).json({ ok: false, message: timeCheck.message })
     }
 
     if (role === 'o') {
