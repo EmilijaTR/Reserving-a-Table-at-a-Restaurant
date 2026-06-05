@@ -1,6 +1,7 @@
 const express = require('express')
 const { promisePool } = require('../../DB/dbConn')
-const { getUserIdFromRequest } = require('./userContext')
+const { getUserIdFromRequest, getUserRole } = require('./userContext')
+const { validateBookingDatetime } = require('./bookingTime')
 const {
   overlappingGuestTotal,
   getRestaurantCapacity,
@@ -68,6 +69,14 @@ router.patch('/:id', async (req, res) => {
         })
       }
       nextGuests = g
+    }
+
+    if (datetime != null) {
+      const role = await getUserRole(makerId)
+      const timeCheck = validateBookingDatetime(nextStart, role === 'o' ? 'o' : 'c')
+      if (!timeCheck.ok) {
+        return res.status(400).json({ ok: false, message: timeCheck.message })
+      }
     }
 
     const capacity = await getRestaurantCapacity(r.restaurant_id)

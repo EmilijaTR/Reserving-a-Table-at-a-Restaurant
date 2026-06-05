@@ -46,6 +46,11 @@ export default function ReservationsUpcoming() {
     [reservations]
   );
 
+  async function handleUpdated() {
+    setMessage("Reservation updated.");
+    await loadReservations();
+  }
+
   async function handleCancel(reservationId) {
     setMessage("");
     try {
@@ -70,7 +75,8 @@ export default function ReservationsUpcoming() {
     <>
       <h1 className="profile-page-title">Upcoming reservations</h1>
       <p className="text-muted profile-page-lead">
-        Pending table bookings. Cancel in time if your plans change.
+        Pending table bookings. Edit date, guests, or notes — or cancel in time if
+        your plans change.
       </p>
 
       {loading && <p className="text-muted">Loading…</p>}
@@ -89,8 +95,10 @@ export default function ReservationsUpcoming() {
           <ReservationRow
             key={r.reservation_id}
             reservation={r}
+            showEdit
             showCancel
             onCancel={handleCancel}
+            onUpdated={handleUpdated}
           />
         ))}
       </div>

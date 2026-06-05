@@ -3,20 +3,43 @@ import { Link } from "react-router";
 import { API_URL } from "../config/api";
 import { jsonAuthHeaders } from "../config/auth";
 import { formatDateTime, statusLabel } from "../utils/reservationFilters";
+import {
+  isoToDatetimeLocalValue,
+  isValidCustomerBookingTime,
+  minDatetimeLocalTwoHoursAhead,
+} from "../utils/bookingTime";
 
 export default function ReservationRow({
   reservation,
   showCancel,
+  showEdit,
   showReview,
   alreadyReviewed,
   onCancel,
   onReviewSubmitted,
+  onUpdated,
 }) {
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
+  const [editDatetime, setEditDatetime] = useState("");
+  const [editGuests, setEditGuests] = useState(2);
+  const [editNotes, setEditNotes] = useState("");
   const [reviewMessage, setReviewMessage] = useState("");
+  const [editMessage, setEditMessage] = useState("");
+  const [editIsError, setEditIsError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  function openEdit() {
+    setEditOpen(true);
+    setReviewOpen(false);
+    setEditDatetime(isoToDatetimeLocalValue(reservation.datetime));
+    setEditGuests(reservation.guest_count);
+    setEditNotes(reservation.notes || "");
+    setEditMessage("");
+    setEditIsError(false);
+  }
 
   async function handleReviewSubmit(event) {
     event.preventDefault();
@@ -49,6 +72,45 @@ export default function ReservationRow({
     }
   }
 
+  async function handleEditSubmit(event) {
+    event.preventDefault();
+    setEditMessage("");
+    setEditIsError(false);
+
+    if (!isValidCustomerBookingTime(editDatetime)) {
+      setEditMessage("Choose a time at least 2 hours from now.");
+      setEditIsError(true);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/reservations/${reservation.reservation_id}`, {
+        method: "PATCH",
+        headers: jsonAuthHeaders(),
+        body: JSON.stringify({
+          datetime: new Date(editDatetime).toISOString(),
+          guest_count: Number(editGuests),
+          notes: editNotes,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setEditOpen(false);
+        onUpdated?.();
+      } else {
+        setEditMessage(data.message || "Could not update reservation.");
+        setEditIsError(true);
+      }
+    } catch (err) {
+      console.log(err);
+      setEditMessage("Update error.");
+      setEditIsError(true);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <article className="reservation-row">
       <div className="reservation-row-main">
@@ -73,6 +135,15 @@ export default function ReservationRow({
           >
             Details
           </Link>
+          {showEdit && reservation.status === "pending" && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => (editOpen ? setEditOpen(false) : openEdit())}
+            >
+              {editOpen ? "Close" : "Edit"}
+            </button>
+          )}
           {showCancel && reservation.status === "pending" && (
             <button
               type="button"
@@ -98,6 +169,48 @@ export default function ReservationRow({
           )}
         </div>
       </div>
+
+      {editOpen && (
+        <form className="review-inline" onSubmit={handleEditSubmit}>
+          <div className="form-field">
+            <label>Date and time</label>
+            <input
+              type="datetime-local"
+              value={editDatetime}
+              min={minDatetimeLocalTwoHoursAhead()}
+              onChange={(e) => setEditDatetime(e.target.value)}
+              required
+            />
+            <p className="form-hint">Must be at least 2 hours from now.</p>
+          </div>
+          <div className="form-field">
+            <label>Guests</label>
+            <input
+              type="number"
+              min="1"
+              value={editGuests}
+              onChange={(e) => setEditGuests(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-field">
+            <label>Notes</label>
+            <textarea
+              rows="2"
+              value={editNotes}
+              onChange={(e) => setEditNotes(e.target.value)}
+            />
+          </div>
+          <button type="submit" className="btn btn-primary btn-sm" disabled={submitting}>
+            {submitting ? "Saving…" : "Save changes"}
+          </button>
+          {editMessage && (
+            <p className={editIsError ? "alert alert-error" : "alert alert-success"}>
+              {editMessage}
+            </p>
+          )}
+        </form>
+      )}
 
       {reviewOpen && (
         <form className="review-inline" onSubmit={handleReviewSubmit}>

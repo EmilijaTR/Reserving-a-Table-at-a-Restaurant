@@ -5,6 +5,11 @@ export function toDatetimeLocalValue(date) {
   return local.toISOString().slice(0, 16);
 }
 
+/** API ISO string → value for datetime-local input */
+export function isoToDatetimeLocalValue(iso) {
+  return toDatetimeLocalValue(new Date(iso));
+}
+
 /** Earliest datetime-local value for customer online booking */
 export function minDatetimeLocalTwoHoursAhead() {
   return toDatetimeLocalValue(new Date(Date.now() + MIN_ADVANCE_MS));
