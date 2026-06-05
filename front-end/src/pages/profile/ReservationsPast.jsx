@@ -7,7 +7,7 @@ import { splitTableReservations } from "../../utils/reservationFilters";
 
 export default function ReservationsPast() {
   const [reservations, setReservations] = useState([]);
-  const [reviewedRestaurantIds, setReviewedRestaurantIds] = useState(new Set());
+  const [reviewsByRestaurant, setReviewsByRestaurant] = useState(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -28,10 +28,11 @@ export default function ReservationsPast() {
       setReservations(dataRes.reservations || []);
 
       if (revRes.ok) {
-        const ids = new Set(
-          (dataRev.reviews || []).map((rev) => Number(rev.restaurant_id))
-        );
-        setReviewedRestaurantIds(ids);
+        const map = new Map();
+        (dataRev.reviews || []).forEach((rev) => {
+          map.set(Number(rev.restaurant_id), rev);
+        });
+        setReviewsByRestaurant(map);
       }
     } catch (err) {
       console.log(err);
@@ -61,7 +62,7 @@ export default function ReservationsPast() {
       <h1 className="profile-page-title">Past reservations</h1>
       <p className="text-muted profile-page-lead">
         Completed, cancelled, and no-show visits. Completed visits can be reviewed
-        once per restaurant.
+        or updated once per restaurant.
       </p>
 
       {loading && <p className="text-muted">Loading…</p>}
@@ -77,7 +78,7 @@ export default function ReservationsPast() {
             key={r.reservation_id}
             reservation={r}
             showReview={r.status === "completed"}
-            alreadyReviewed={reviewedRestaurantIds.has(Number(r.restaurant_id))}
+            existingReview={reviewsByRestaurant.get(Number(r.restaurant_id))}
             onReviewSubmitted={loadAll}
           />
         ))}

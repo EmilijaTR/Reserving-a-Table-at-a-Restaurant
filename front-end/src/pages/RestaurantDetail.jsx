@@ -25,10 +25,6 @@ export default function RestaurantDetail() {
   const [notes, setNotes] = useState("");
   const [useDiscount, setUseDiscount] = useState(false);
 
-  //review form
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState("");
-
   useEffect(() => {
     async function load() {
       setLoading(true);
@@ -127,51 +123,6 @@ export default function RestaurantDetail() {
     } catch (err) {
       console.log(err);
       setMessage("Booking error.");
-    }
-  }
-
-  async function handleReview(event) {
-    event.preventDefault();
-    setMessage("");
-
-    if (!user || user.role !== "c") {
-      setMessage("Only logged-in customers can leave a review.");
-      return;
-    }
-
-    try {
-      const res = await fetch(`${API_URL}/reviews`, {
-        method: "POST",
-        headers: jsonAuthHeaders(),
-        body: JSON.stringify({
-          restaurant_id: Number(id),
-          rating: Number(rating),
-          comment,
-        }),
-      });
-
-      const text = await res.text();
-      let data = {};
-      if (text) {
-        try {
-          data = JSON.parse(text);
-        } catch {
-          data = { message: "Invalid response." };
-        }
-      }
-
-      if (res.ok && data.ok) {
-        setMessage("Review submitted.");
-        const resRev = await fetch(`${API_URL}/reviews/restaurant/${id}`);
-        const dataRev = await resRev.json();
-        if (resRev.ok) setReviews(dataRev.reviews || []);
-        setComment("");
-      } else {
-        setMessage(data.message || `Review failed (${res.status}).`);
-      }
-    } catch (err) {
-      console.log(err);
-      setMessage("Review error.");
     }
   }
 
@@ -321,37 +272,6 @@ export default function RestaurantDetail() {
           </article>
         ))}
       </section>
-
-      {user && user.role === "c" && (
-        <section className="page-section">
-          <h2>Write a review</h2>
-          <p className="text-muted">
-            You need at least one completed reservation at this restaurant.
-          </p>
-          <form onSubmit={handleReview}>
-            <div className="form-field">
-              <label>Rating (1–5)</label>
-              <input
-                type="number"
-                min="1"
-                max="5"
-                value={rating}
-                onChange={(e) => setRating(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-field">
-              <label>Comment</label>
-              <textarea
-                rows="3"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-              />
-            </div>
-            <button type="submit">Submit review</button>
-          </form>
-        </section>
-      )}
     </main>
   );
 }

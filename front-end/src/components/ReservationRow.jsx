@@ -8,28 +8,28 @@ import {
   isValidCustomerBookingTime,
   minDatetimeLocalTwoHoursAhead,
 } from "../utils/bookingTime";
+import ReviewForm from "./ReviewForm";
 
 export default function ReservationRow({
   reservation,
   showCancel,
   showEdit,
   showReview,
-  alreadyReviewed,
+  existingReview,
   onCancel,
   onReviewSubmitted,
   onUpdated,
 }) {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState("");
   const [editDatetime, setEditDatetime] = useState("");
   const [editGuests, setEditGuests] = useState(2);
   const [editNotes, setEditNotes] = useState("");
-  const [reviewMessage, setReviewMessage] = useState("");
   const [editMessage, setEditMessage] = useState("");
   const [editIsError, setEditIsError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const alreadyReviewed = Boolean(existingReview);
 
   function openEdit() {
     setEditOpen(true);
@@ -39,37 +39,6 @@ export default function ReservationRow({
     setEditNotes(reservation.notes || "");
     setEditMessage("");
     setEditIsError(false);
-  }
-
-  async function handleReviewSubmit(event) {
-    event.preventDefault();
-    setReviewMessage("");
-    setSubmitting(true);
-
-    try {
-      const res = await fetch(`${API_URL}/reviews`, {
-        method: "POST",
-        headers: jsonAuthHeaders(),
-        body: JSON.stringify({
-          restaurant_id: reservation.restaurant_id,
-          rating: Number(rating),
-          comment,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data.ok) {
-        setReviewMessage("Review submitted. Thank you!");
-        setReviewOpen(false);
-        onReviewSubmitted?.();
-      } else {
-        setReviewMessage(data.message || "Could not submit review.");
-      }
-    } catch (err) {
-      console.log(err);
-      setReviewMessage("Review error.");
-    } finally {
-      setSubmitting(false);
-    }
   }
 
   async function handleEditSubmit(event) {
@@ -153,19 +122,17 @@ export default function ReservationRow({
               Cancel
             </button>
           )}
-          {showReview && !alreadyReviewed && (
+          {showReview && (
             <button
               type="button"
               className="btn btn-primary btn-sm"
-              onClick={() => setReviewOpen((v) => !v)}
+              onClick={() => {
+                setEditOpen(false);
+                setReviewOpen((v) => !v);
+              }}
             >
-              {reviewOpen ? "Close" : "Review"}
+              {reviewOpen ? "Close" : alreadyReviewed ? "Edit review" : "Review"}
             </button>
-          )}
-          {showReview && alreadyReviewed && (
-            <span className="text-muted" style={{ fontSize: "0.85rem" }}>
-              Reviewed
-            </span>
           )}
         </div>
       </div>
@@ -213,32 +180,17 @@ export default function ReservationRow({
       )}
 
       {reviewOpen && (
-        <form className="review-inline" onSubmit={handleReviewSubmit}>
-          <div className="form-field">
-            <label>Rate (1–5)</label>
-            <input
-              type="number"
-              min="1"
-              max="5"
-              value={rating}
-              onChange={(e) => setRating(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-field">
-            <label>Your review</label>
-            <textarea
-              rows="3"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="How was your visit?"
-            />
-          </div>
-          <button type="submit" className="btn btn-primary btn-sm" disabled={submitting}>
-            {submitting ? "Submitting…" : "Submit review"}
-          </button>
-          {reviewMessage && <p className="text-muted">{reviewMessage}</p>}
-        </form>
+        <ReviewForm
+          compact
+          reviewId={existingReview?.review_id}
+          restaurantId={reservation.restaurant_id}
+          initialRating={existingReview?.rating ?? 5}
+          initialComment={existingReview?.comment ?? ""}
+          onSuccess={() => {
+            setReviewOpen(false);
+            onReviewSubmitted?.();
+          }}
+        />
       )}
     </article>
   );
