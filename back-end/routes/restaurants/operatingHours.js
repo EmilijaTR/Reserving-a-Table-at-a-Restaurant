@@ -16,6 +16,7 @@ function parseOperatingHours(value) {
 
   const openMinutes = openH * 60 + openM
   const closeMinutes = closeH * 60 + closeM
+  //just so the interval is valid
   if (closeMinutes <= openMinutes) return null
 
   return {
@@ -24,8 +25,8 @@ function parseOperatingHours(value) {
     openMinute: openM,
     closeHour: closeH,
     closeMinute: closeM,
-    openSlotIndex: Math.floor(openMinutes / 30),
-    closeSlotIndex: Math.ceil(closeMinutes / 30),
+    openSlotIndex: Math.floor(openMinutes / 30), //on which slot is open
+    closeSlotIndex: Math.ceil(closeMinutes / 30), ////on which slot is closed
   }
 }
 

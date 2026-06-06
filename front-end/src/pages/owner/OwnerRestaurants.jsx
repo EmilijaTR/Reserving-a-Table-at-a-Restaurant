@@ -67,6 +67,7 @@ export default function OwnerRestaurants() {
               <Link to={`/owner/restaurants/${r.restaurant_id}/edit`}>
                 Edit profile
               </Link>
+              {" · "}
               <Link to={`/owner/restaurants/${r.restaurant_id}/events`}>
                 Events
               </Link>

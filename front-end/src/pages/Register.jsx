@@ -53,6 +53,7 @@ export default function Register() {
 
   return (
     <main className="auth-page">
+      <div className="auth-page-center auth-page-center--register">
       <section className="auth-card card">
         <h1>Create account</h1>
         <p className="auth-subtitle">Join RESTABLE as a customer or restaurant owner.</p>
@@ -139,6 +140,7 @@ export default function Register() {
           Already have an account? <Link to="/login">Sign in</Link>
         </p>
       </section>
+      </div>
     </main>
   );
 }

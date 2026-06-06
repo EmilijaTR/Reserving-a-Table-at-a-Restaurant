@@ -90,7 +90,7 @@ export default function Home() {
           <p className="landing-eyebrow">RESTABLE</p>
           <h1>Find your next table</h1>
           <p className="landing-tagline">
-            Search restaurants, pick a date, and book in minutes — or join a special event.
+            Search restaurants, pick a date, and book in minutes or join in some of the special events.
           </p>
 
           <RestaurantSearchBar

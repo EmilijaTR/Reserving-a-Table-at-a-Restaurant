@@ -5,6 +5,7 @@ import { jsonAuthHeaders } from "../../config/auth";
 
 export default function OwnerEventsList() {
   const { id: restaurantId } = useParams();
+  const [restaurantName, setRestaurantName] = useState("");
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -21,6 +22,16 @@ export default function OwnerEventsList() {
     let cancelled = false;
     (async () => {
       try {
+        const resMine = await fetch(`${API_URL}/restaurants/mine`, {
+          headers: jsonAuthHeaders(),
+        });
+        const dataMine = await resMine.json();
+        if (resMine.ok && !cancelled) {
+          const r = (dataMine.restaurants || []).find(
+            (x) => String(x.restaurant_id) === String(restaurantId)
+          );
+          if (r) setRestaurantName(r.name);
+        }
         await load();
       } catch (err) {
         if (!cancelled) setError(err.message);
@@ -58,7 +69,7 @@ export default function OwnerEventsList() {
       <Link to="/owner/restaurants">← My restaurants</Link>
 
       <section className="news-hero">
-        <h1>Events for restaurant #{restaurantId}</h1>
+        <h1>Events in {restaurantName || `Restaurant #${restaurantId}`}</h1>
         <p>
           <Link to={`/owner/restaurants/${restaurantId}/events/new`}>
             + Create event

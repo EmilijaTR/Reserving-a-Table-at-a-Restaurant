@@ -79,21 +79,7 @@ export default function About() {
         </p>
       </section>
 
-      <section className="page-section about-footer-blurb">
-        <h2>Get started</h2>
-        <p className="text-muted">
-          New here? Create a customer account to book tables and events, or
-          register as an owner to list your venue.
-        </p>
-        <p className="about-cta-row">
-          <Link to="/register" className="btn btn-primary btn-sm">
-            Register
-          </Link>
-          <Link to="/login" className="btn btn-ghost btn-sm">
-            Log in
-          </Link>
-        </p>
-      </section>
+    
     </main>
   );
 }

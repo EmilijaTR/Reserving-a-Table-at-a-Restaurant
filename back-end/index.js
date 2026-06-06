@@ -38,7 +38,6 @@ app.use('/events', eventRoutes)
 
 app.use('/eventReservations', eventReservationRoutes)
 
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 app.get('/api', (_req, res) => {

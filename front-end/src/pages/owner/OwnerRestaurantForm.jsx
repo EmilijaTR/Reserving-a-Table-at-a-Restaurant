@@ -311,6 +311,17 @@ export default function OwnerRestaurantForm() {
           </div>
         </section>
 
+        {!isEdit && (
+          <div className="owner-loyalty-notice">
+            <p>
+              By pressing <strong>Create restaurant</strong>, you agree to the RESTABLE
+              loyalty programme. Diners earn one point for each completed reservation.
+              After collecting <strong>5 points</strong>, a customer is eligible for a{" "}
+              <strong>5% discount</strong> on their next booking at your restaurant.
+            </p>
+          </div>
+        )}
+
         <div className="form-actions">
           <button type="submit" className="btn btn-primary" disabled={saving}>
             {saving ? "Saving…" : isEdit ? "Save changes" : "Create restaurant"}

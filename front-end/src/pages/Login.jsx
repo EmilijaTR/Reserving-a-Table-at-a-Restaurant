@@ -42,6 +42,7 @@ export default function Login() {
 
   return (
     <main className="auth-page">
+      <div className="auth-page-center">
       <section className="auth-card card">
         <h1>Welcome back</h1>
         <p className="auth-subtitle">Sign in to book tables or manage your restaurant.</p>
@@ -85,6 +86,7 @@ export default function Login() {
           No account yet? <Link to="/register">Register</Link>
         </p>
       </section>
+      </div>
     </main>
   );
 }
