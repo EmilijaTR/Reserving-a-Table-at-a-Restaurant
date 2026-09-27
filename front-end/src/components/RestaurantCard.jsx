@@ -1,14 +1,18 @@
+import { useState } from "react";
 import { Link } from "react-router";
 import { API_URL } from "../config/api";
 
 export default function RestaurantCard({ restaurant }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
   return (
     <article className="card restaurant-card">
-      {restaurant.picture ? (
+      {restaurant.picture && !imageFailed ? (
         <img
           className="restaurant-card-image"
           src={`${API_URL}${restaurant.picture}`}
           alt={restaurant.name}
+          onError={() => setImageFailed(true)}
         />
       ) : (
         <div className="restaurant-card-image restaurant-card-image--placeholder" aria-hidden>

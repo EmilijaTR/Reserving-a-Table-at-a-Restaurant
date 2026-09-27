@@ -41,6 +41,11 @@ export default function Home() {
   const [restaurants, setRestaurants] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [failedImages, setFailedImages] = useState(new Set());
+
+  function handleImageError(id) {
+    setFailedImages((prev) => new Set(prev).add(id));
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -125,11 +130,12 @@ export default function Home() {
               to={`/restaurants/${r.restaurant_id}`}
               className="home-tile"
             >
-              {r.picture ? (
+              {r.picture && !failedImages.has(r.restaurant_id) ? (
                 <img
                   className="home-tile-image"
                   src={`${API_URL}${r.picture}`}
                   alt=""
+                  onError={() => handleImageError(r.restaurant_id)}
                 />
               ) : (
                 <div className="home-tile-image home-tile-image--placeholder">

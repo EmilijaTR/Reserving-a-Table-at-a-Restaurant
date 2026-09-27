@@ -18,6 +18,7 @@ export default function RestaurantDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [imageFailed, setImageFailed] = useState(false);
 
   //booking form
   const [datetime, setDatetime] = useState("");
@@ -141,11 +142,12 @@ export default function RestaurantDetail() {
       <Link to="/restaurants">← Back to restaurants</Link>
 
       <section className="card detail-hero" style={{ marginTop: "16px" }}>
-        {restaurant.picture && (
+        {restaurant.picture && !imageFailed && (
           <img
             className="detail-hero-image"
             src={`${API_URL}${restaurant.picture}`}
             alt={restaurant.name}
+            onError={() => setImageFailed(true)}
           />
         )}
         <div className="detail-hero-body">

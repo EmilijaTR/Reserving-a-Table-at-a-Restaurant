@@ -27,6 +27,7 @@ export default function OwnerRestaurantForm() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [pictureFailed, setPictureFailed] = useState(false);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -281,12 +282,18 @@ export default function OwnerRestaurantForm() {
               {pictureFile && <p>Selected: {pictureFile.name}</p>}
               {!pictureFile && <p>JPG or PNG, shown on listings</p>}
             </div>
-            {form.picture && (
+            {form.picture && !pictureFailed && (
               <img
                 src={`${API_URL}${form.picture}`}
                 alt="Current restaurant"
                 style={{ maxWidth: "220px", marginTop: "12px", borderRadius: "8px" }}
+                onError={() => setPictureFailed(true)}
               />
+            )}
+            {form.picture && pictureFailed && (
+              <p className="text-muted" style={{ marginTop: "12px" }}>
+                Current image unavailable. Upload a new one to replace it.
+              </p>
             )}
           </div>
 
